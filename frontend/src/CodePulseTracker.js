@@ -246,7 +246,8 @@ const ProblemCard = ({ problem, onToggle, onSaveNote, notes, isDarkMode, getDiff
                         }`}
                         rows="8"
                     />
-                    <div className="flex justify-between items-center mt-3">
+                    {/* // UPDATED CLASSNAME: Stacked buttons on mobile for better touch targets. */}
+                    <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mt-3 gap-3">
                         <div className="flex gap-2">
                             <button
                                 onClick={handleSaveNote}
@@ -275,7 +276,7 @@ const ProblemCard = ({ problem, onToggle, onSaveNote, notes, isDarkMode, getDiff
                                     setNoteText('');
                                     setNotesMode('none');
                                 }}
-                                className={`text-red-600 hover:text-red-800 text-sm flex items-center gap-1 ${isDarkMode ? 'hover:text-red-400' : ''}`}
+                                className={`text-red-600 hover:text-red-800 text-sm flex items-center justify-center gap-1 ${isDarkMode ? 'hover:text-red-400' : ''}`}
                             >
                                 <Trash2 size={12} />
                                 Delete Notes
@@ -319,7 +320,8 @@ const SetupForm = ({ isDarkMode, formData, setFormData, handleFormSubmit, availa
     const displayedTopics = showAllTopics ? availableTopics : availableTopics.slice(0, 8);
 
     return (
-        <div className={`max-w-4xl mx-auto p-6 rounded-lg shadow-lg transition-colors duration-300 ${
+        // UPDATED CLASSNAME: Reduced padding on mobile.
+        <div className={`max-w-4xl mx-auto p-4 sm:p-6 rounded-lg shadow-lg transition-colors duration-300 ${
             isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
         }`}>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 transition-colors duration-300 ${
@@ -340,7 +342,8 @@ const SetupForm = ({ isDarkMode, formData, setFormData, handleFormSubmit, availa
                         <Target className="inline w-4 h-4 mr-2" />
                         Skill Level
                     </label>
-                    <div className="grid grid-cols-3 gap-3">
+                    {/* // UPDATED CLASSNAME: Stacked grid on mobile, 3 columns on larger screens. */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {[
                             { value: 'beginner', label: 'Beginner', desc: 'New to coding interviews' },
                             { value: 'intermediate', label: 'Intermediate', desc: 'Some practice experience' },
@@ -525,10 +528,10 @@ const SetupForm = ({ isDarkMode, formData, setFormData, handleFormSubmit, availa
                 </div>
 
 
-                {/* Generate Button */}
+                {/* // UPDATED CLASSNAME: Adjusted font size on mobile for better fit. */}
                 <button
                     onClick={handleFormSubmit}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium text-lg shadow-lg hover:shadow-xl"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium text-base sm:text-lg shadow-lg hover:shadow-xl"
                 >
                     🚀 Generate My Personalized Study Plan
                 </button>
@@ -553,8 +556,10 @@ const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
     return (
         <div className="space-y-6">
             {/* Progress Overview */}
+            {/* // UPDATED CLASSNAME: The grid is already responsive, which is great. */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className={`p-6 rounded-lg shadow transition-colors duration-300 ${
+                {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
+                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
                     isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
                 }`}>
                     <div className="flex items-center justify-between">
@@ -566,7 +571,8 @@ const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
                     </div>
                 </div>
 
-                <div className={`p-6 rounded-lg shadow transition-colors duration-300 ${
+                {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
+                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
                     isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
                 }`}>
                     <div className="flex items-center justify-between">
@@ -578,7 +584,8 @@ const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
                     </div>
                 </div>
 
-                <div className={`p-6 rounded-lg shadow transition-colors duration-300 ${
+                {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
+                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
                     isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
                 }`}>
                     <div className="flex items-center justify-between">
@@ -592,7 +599,8 @@ const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
                     </div>
                 </div>
 
-                <div className={`p-6 rounded-lg shadow transition-colors duration-300 ${
+                {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
+                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
                     isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
                 }`}>
                     <div className="flex items-center justify-between">
@@ -606,7 +614,8 @@ const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
             </div>
 
             {/* Progress Bar */}
-            <div className={`p-6 rounded-lg shadow transition-colors duration-300 ${
+            {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
+            <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
                 isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
             }`}>
                 <h3 className="text-lg font-semibold mb-4">Overall Progress</h3>
@@ -718,9 +727,12 @@ const TaskManager = ({ studyPlan, addCustomProblem, toggleProblemStatus, saveNot
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Task Manager - Day by Day</h2>
-                <div className="flex gap-2">
+            {/* // UPDATED CLASSNAME: Stacked header on mobile. */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                {/* // UPDATED CLASSNAME: Adjusted font size on mobile. */}
+                <h2 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Task Manager - Day by Day</h2>
+                {/* // UPDATED CLASSNAME: Added flex-wrap for better wrapping on small screens. */}
+                <div className="flex flex-wrap gap-2">
                     <button
                         onClick={() => setExpandedDays(new Set(studyPlan.map(day => day.day)))}
                         className="bg-gray-600 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm"
@@ -751,6 +763,7 @@ const TaskManager = ({ studyPlan, addCustomProblem, toggleProblemStatus, saveNot
                         isDarkMode ? 'text-white' : 'text-gray-800'
                     }`}>Add Custom Problem</h3>
                     <div className="space-y-4">
+                        {/* // UPDATED CLASSNAME: This grid is already responsive, which is great. */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input
                                 type="text"
@@ -791,16 +804,17 @@ const TaskManager = ({ studyPlan, addCustomProblem, toggleProblemStatus, saveNot
                             onChange={(e) => setCustomForm(prev => ({ ...prev, customLink: e.target.value }))}
                             className={`w-full ${inputClasses}`}
                         />
-                        <div className="flex gap-2">
+                        {/* // UPDATED CLASSNAME: Stacked buttons on mobile. Added w-full/sm:w-auto for proper sizing. */}
+                        <div className="flex flex-col sm:flex-row gap-2">
                             <button
                                 onClick={handleCustomSubmit}
-                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                                className="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
                             >
                                 Add Problem
                             </button>
                             <button
                                 onClick={() => setShowCustomForm(false)}
-                                className={`px-4 py-2 rounded-lg transition-colors duration-300 ${isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+                                className={`w-full sm:w-auto px-4 py-2 rounded-lg transition-colors duration-300 ${isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
                             >
                                 Cancel
                             </button>
@@ -824,7 +838,8 @@ const TaskManager = ({ studyPlan, addCustomProblem, toggleProblemStatus, saveNot
                                 className={`p-4 cursor-pointer transition-colors ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
                                 onClick={() => toggleDay(dayPlan.day)}
                             >
-                                <div className="flex items-center justify-between">
+                                {/* // UPDATED CLASSNAME: Stacked layout on mobile to prevent squishing. */}
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                     <div className="flex items-center gap-3">
                                         <span className="text-2xl">{getStatusIcon(dayStatus)}</span>
                                         <div>
@@ -840,9 +855,10 @@ const TaskManager = ({ studyPlan, addCustomProblem, toggleProblemStatus, saveNot
                                         )}
                                     </div>
 
-                                    <div className="flex items-center gap-4">
+                                    {/* // UPDATED CLASSNAME: Changed alignment for mobile stacking. */}
+                                    <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-4">
                                         {/* Progress Info */}
-                                        <div className="text-right">
+                                        <div className="text-left sm:text-right">
                                             <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                                                 {progress.completed}/{progress.total} Problems
                                             </div>
@@ -1239,7 +1255,8 @@ const StudyPlanner = () => {
             <header className={`shadow-sm border-b transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center py-4">
-                        <h1 className={`text-2xl font-bold flex items-center gap-2 transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {/* // UPDATED CLASSNAME: Adjusted font size for mobile. */}
+                        <h1 className={`text-xl sm:text-2xl font-bold flex items-center gap-2 transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                             <BookOpen className="text-blue-600" />
                             CodePulse - Personalized Coding Progress Tracker
                         </h1>
@@ -1285,7 +1302,8 @@ const StudyPlanner = () => {
             {/* Navigation */}
             <nav className={`shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex space-x-8">
+                    {/* // UPDATED CLASSNAME: Added overflow-x-auto for horizontal scrolling on mobile. */}
+                    <div className="flex space-x-4 sm:space-x-8 overflow-x-auto whitespace-nowrap">
                         {[
                             { id: 'setup', label: 'Setup', icon: Target },
                             { id: 'dashboard', label: 'Dashboard', icon: Calendar },
@@ -1294,7 +1312,8 @@ const StudyPlanner = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-3 py-4 text-sm font-medium border-b-2 transition-colors duration-300 ${
+                                // UPDATED CLASSNAME: Reduced horizontal padding on mobile for a tighter fit.
+                                className={`flex items-center gap-2 px-2 sm:px-3 py-4 text-sm font-medium border-b-2 transition-colors duration-300 ${
                                     activeTab === tab.id
                                         ? 'border-blue-500 text-blue-600'
                                         : isDarkMode
