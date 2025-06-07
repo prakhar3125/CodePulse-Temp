@@ -622,82 +622,96 @@ const SetupForm = ({ isDarkMode, formData, setFormData, handleFormSubmit, availa
 };
 
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
+// (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
 const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
+    // LeetCode-style progress bar for a specific difficulty
+    const DifficultyProgressBar = ({ difficulty, data, colorClass }) => (
+        <div>
+            <div className="flex justify-between mb-1">
+                <span className={`text-base font-medium ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{difficulty}</span>
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{data.completed} / {data.total}</span>
+            </div>
+            <div className={`w-full rounded-full h-2.5 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                <div
+                    className={`${colorClass} h-2.5 rounded-full transition-all duration-500`}
+                    style={{ width: `${data.percentage}%` }}
+                ></div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="space-y-6">
             {/* Progress Overview */}
-            {/* // UPDATED CLASSNAME: The grid is already responsive, which is great. */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
-                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
-                    isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-                }`}>
+                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                     <div className="flex items-center justify-between">
                         <div>
                             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Problems</p>
                             <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{stats.total}</p>
                         </div>
-                        <Target className="text-blue-600" size={24} />
+                        <Target className="text-blue-500" size={24} />
                     </div>
                 </div>
-
-                {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
-                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
-                    isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-                }`}>
+                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                     <div className="flex items-center justify-between">
                         <div>
                             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Completed</p>
-                            <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+                            <p className="text-2xl font-bold text-green-500">{stats.completed}</p>
                         </div>
-                        <CheckCircle className="text-green-600" size={24} />
+                        <CheckCircle className="text-green-500" size={24} />
                     </div>
                 </div>
-
-                {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
-                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
-                    isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-                }`}>
+                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                     <div className="flex items-center justify-between">
-                        <div>
+                         <div>
                             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Progress</p>
-                            <p className="text-2xl font-bold text-blue-600">{stats.percentage}%</p>
+                            <p className="text-2xl font-bold text-blue-500">{stats.percentage}%</p>
                         </div>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-blue-900' : 'bg-blue-100'}`}>
-                            <span className="text-sm font-bold text-blue-600">{stats.percentage}%</span>
+                        <div className="relative w-10 h-10">
+                            <svg className="w-full h-full" viewBox="0 0 36 36">
+                                <path
+                                    className={isDarkMode ? 'text-gray-700' : 'text-gray-200'}
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none" stroke="currentColor" strokeWidth="3.8"
+                                />
+                                <path
+                                    className="text-blue-500"
+                                    strokeDasharray={`${stats.percentage}, 100`}
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none" stroke="currentColor" strokeWidth="3.8" strokeLinecap="round"
+                                />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                               <span className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{stats.percentage}%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
-                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
-                    isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-                }`}>
+                <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                     <div className="flex items-center justify-between">
                         <div>
                             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Reviews Due</p>
-                            <p className="text-2xl font-bold text-orange-600">{spacedRepetition.length}</p>
+                            <p className="text-2xl font-bold text-orange-500">{spacedRepetition.length}</p>
                         </div>
-                        <Bell className="text-orange-600" size={24} />
+                        <Bell className="text-orange-500" size={24} />
                     </div>
                 </div>
             </div>
 
-            {/* Progress Bar */}
-            {/* // UPDATED CLASSNAME: Reduced padding on mobile. */}
-            <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${
-                isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-            }`}>
-                <h3 className="text-lg font-semibold mb-4">Overall Progress</h3>
-                <div className={`w-full rounded-full h-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                    <div
-                        className="bg-blue-600 h-4 rounded-full transition-all duration-300"
-                        style={{ width: `${stats.percentage}%` }}
-                    ></div>
+            {/* LeetCode-Style Progress Breakdown */}
+            <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Progress Breakdown</h3>
+                <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {stats.completed} of {stats.total} problems solved
+                </p>
+                <div className="space-y-4">
+                    <DifficultyProgressBar difficulty="Easy" data={stats.easy} colorClass="bg-green-500" />
+                    <DifficultyProgressBar difficulty="Medium" data={stats.medium} colorClass="bg-yellow-500" />
+                    <DifficultyProgressBar difficulty="Hard" data={stats.hard} colorClass="bg-red-500" />
                 </div>
-                <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stats.completed} of {stats.total} problems completed</p>
             </div>
-            
+
             <SpacedRepetitionList problems={spacedRepetition} isDarkMode={isDarkMode} />
         </div>
     );
@@ -1414,13 +1428,44 @@ const StudyPlanner = ({onLogout, user}) => {
     };
 
 
-    const getProgressStats = () => {
-        const total = problems.length;
-        const completed = problems.filter(p => p.status === 'completed').length;
-        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const getProgressStats = () => {
+        const stats = {
+            total: problems.length,
+            completed: 0,
+            percentage: 0,
+            easy: { total: 0, completed: 0, percentage: 0 },
+            medium: { total: 0, completed: 0, percentage: 0 },
+            hard: { total: 0, completed: 0, percentage: 0 },
+        };
 
-        return { total, completed, percentage };
+        problems.forEach(p => {
+            if (p.status === 'completed') {
+                stats.completed++;
+            }
+            switch (p.difficulty) {
+                case 'Easy':
+                    stats.easy.total++;
+                    if (p.status === 'completed') stats.easy.completed++;
+                    break;
+                case 'Medium':
+                    stats.medium.total++;
+                    if (p.status === 'completed') stats.medium.completed++;
+                    break;
+                case 'Hard':
+                    stats.hard.total++;
+                    if (p.status === 'completed') stats.hard.completed++;
+                    break;
+            }
+        });
+
+        stats.percentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+        stats.easy.percentage = stats.easy.total > 0 ? Math.round((stats.easy.completed / stats.easy.total) * 100) : 0;
+        stats.medium.percentage = stats.medium.total > 0 ? Math.round((stats.medium.completed / stats.medium.total) * 100) : 0;
+        stats.hard.percentage = stats.hard.total > 0 ? Math.round((stats.hard.completed / stats.hard.total) * 100) : 0;
+
+        return stats;
     };
+
 
     return (
         <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
