@@ -1273,13 +1273,17 @@ const StudyPlanner = ({onLogout, user}) => {
 
                             <div className="flex items-center gap-3">
                                 <img
-                                    src={user?.avatar}
-                                    alt={user?.name}
+                                    src={user?.avatar || '[https://via.placeholder.com/150](https://via.placeholder.com/150)'} // Fallback for avatar
+                                    alt={user?.name || 'User'} // Fallback for alt text
                                     className="w-8 h-8 rounded-full border-2 border-blue-200"
                                 />
                                 <div className="hidden sm:block">
-                                    <p className={`text-sm font-medium transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
-                                    <p className={`text-xs transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{user?.email}</p>
+                                    <p className={`text-sm font-medium transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                        {user?.name || 'Guest User'} {/* Display user name or 'Guest User' */}
+                                    </p>
+                                    <p className={`text-xs transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        {user?.email || 'guest@example.com'} {/* Display user email or a default */}
+                                    </p>
                                 </div>
                             </div>
                             <button
