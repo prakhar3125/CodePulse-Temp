@@ -1,7 +1,8 @@
+// AuthPage.js
+
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, HeartPulse, Zap, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // <--- ADD THIS IMPORT --->
-import loginBG from './assets/loginBG.jpg'; // adjust the path as needed
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import loginBG from './assets/loginBG.jpg';
 
 const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,8 +17,6 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
     password: '',
     confirmPassword: ''
   });
-
-  const navigate = useNavigate(); // <--- ADD THIS INITIALIZATION --->
 
   const validateForm = () => {
     const newErrors = {};
@@ -46,32 +45,37 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
     if (!validateForm()) return;
 
     setLoading(true);
+    setErrors({}); // Clear any previous errors
 
-    // Simulate API call
-    setTimeout(() => {
-      try {
-        // Mock authentication success
-        const userData = {
-          id: Date.now(),
-          name: formData.name || formData.email.split('@')[0],
-          email: formData.email,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || formData.email)}&background=3b82f6&color=ffffff`
-        };
+    try {
+      // Simulate API call with Promise
+      await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          // Mock authentication success
+          const userData = {
+            id: Date.now(),
+            name: formData.name || formData.email.split('@')[0],
+            email: formData.email,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || formData.email)}&background=3b82f6&color=ffffff`
+          };
 
+          resolve(userData);
+        }, 1500);
+      }).then((userData) => {
+        // Call the success handler
         onAuthSuccess(userData);
-        navigate('/track'); // <--- ADD THIS REDIRECTION CALL --->
-      } catch (error) {
-        setErrors({ submit: 'Authentication failed. Please try again.' });
-      } finally {
-        setLoading(false);
-      }
-    }, 1500);
+      });
+    } catch (error) {
+      setErrors({ submit: 'Authentication failed. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -92,7 +96,6 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
     });
   };
 
-  // Enhanced input styling with improved visibility
   const inputClass = (hasError) =>
   `block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 ${
     hasError
@@ -124,8 +127,7 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
       </div>
 
       <div className="max-w-md w-full z-10 relative">
-        {/* Header with improved text visibility */}
-       {/* Header with code-style logo */}
+        {/* Header with code-style logo */}
        <div className="text-center mb-8">
          <div className="flex flex-col items-center justify-center mb-4">
            {/* --- BOLD & REFINED LOGO --- */}
@@ -144,10 +146,8 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
          </p>
        </div>
 
-
-
         {/* Auth Form with enhanced background */}
-        <div className="rounded-2xl shadow-2xl p-8 backdrop-blur-lg bg-white/15 border border-white/30">
+        <form onSubmit={handleSubmit} className="rounded-2xl shadow-2xl p-8 backdrop-blur-lg bg-white/15 border border-white/30">
           <div className="mb-6">
             <h2 className="text-2xl font-bold mb-2 text-black drop-shadow-lg">
               {isSignUp ? 'Create Account' : 'Sign In'}
@@ -295,8 +295,7 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
 
             {/* Submit Button */}
             <button
-              type="button"
-              onClick={handleSubmit}
+              type="submit"
               disabled={loading}
               className="w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02] backdrop-blur-sm"
             >
@@ -316,6 +315,7 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
             <p className="text-white font-medium">
               {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
               <button
+                type="button"
                 onClick={toggleAuthMode}
                 className="font-semibold text-blue-200 hover:text-blue-100 transition-colors duration-300 underline underline-offset-2"
               >
@@ -323,6 +323,7 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
               </button>
             </p>
           </div>
+          
           {/* Project Attribution Footer - Inside the auth form */}
           <div className="mt-6 pt-6 border-t border-white/20">
             <div className="text-center">
@@ -355,7 +356,7 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
               </div>
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

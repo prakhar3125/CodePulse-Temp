@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Circle, Plus, BookOpen, Target, Clock, Bell, Link, Edit, Trash2, Star, Brain, Moon, Sun } from 'lucide-react';
 import AuthPage from './AuthPage'; // ADD THIS IMPORT AT THE TOP
 import problemsData from './problems.json';
-import { useNavigate } from 'react-router-dom'; // <--- ADD THIS IMPORT --->
 
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
 const ProblemCard = ({ problem, onToggle, onSaveNote, notes, isDarkMode, getDifficultyColor, formatNoteContent, insertCodeBlock }) => {
@@ -923,9 +922,8 @@ const TaskManager = ({ studyPlan, addCustomProblem, toggleProblemStatus, saveNot
 };
 
 
-const StudyPlanner = () => {
-    const [user, setUser] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+const StudyPlanner = ({onLogout, user}) => {
+
     const [activeTab, setActiveTab] = useState('setup');
     const [studyPlan, setStudyPlan] = useState(null);
     const [problems, setProblems] = useState([]);
@@ -959,22 +957,20 @@ const StudyPlanner = () => {
         localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
     }, [isDarkMode]);
 
-    const handleAuthSuccess = (userData) => {
-        setUser(userData);
-        setIsAuthenticated(true);
-    };
+
 
     const handleLogout = () => {
-        setUser(null);
-        setIsAuthenticated(false);
         // Reset all data when logging out
-        setStudyPlan(null);
-        setProblems([]);
-        setCompletedProblems([]);
-        setNotes({});
-        setCustomProblems([]);
-        setSpacedRepetition([]);
-        setActiveTab('setup');
+    setStudyPlan(null);
+    setProblems([]);
+    setCompletedProblems([]);
+    setNotes({});
+    setCustomProblems([]);
+    setSpacedRepetition([]);
+    setActiveTab('setup');
+
+    // Call the function passed down from App.js to update the global auth state
+    onLogout(); 
     };
 
     const toggleDarkMode = () => {
@@ -1028,9 +1024,7 @@ const StudyPlanner = () => {
         };
     };
 
-    if (!isAuthenticated) {
-        return <AuthPage onAuthSuccess={handleAuthSuccess} />;
-    }
+
 
     // Available topics for selection
     const availableTopics = [
