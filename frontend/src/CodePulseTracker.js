@@ -1,7 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, Circle, Plus, BookOpen, Target,Code, Clock, Bell, Link, Edit, Trash2, Star, Brain, Moon, Sun } from 'lucide-react';
+import { Calendar, CheckCircle, Circle, Plus, BookOpen, Target, Code, Clock, Bell, Link, Edit, Trash2, Star, Brain, Moon, Sun, AlertCircle } from 'lucide-react';
+import { format, differenceInDays, addDays, parseISO } from 'date-fns';
 import AuthPage from './AuthPage'; // ADD THIS IMPORT AT THE TOP
 import problemsData from './problems.json';
+
+// (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
+const SpacedRepetitionList = React.memo(({ problems, isDarkMode }) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize today's date for accurate comparison
+
+    // Spaced repetition intervals (in days): e.g., 1 day, 3 days, 1 week, 2 weeks, etc.
+    const repetitionIntervals = [1, 3, 7, 14, 30, 90];
+
+    const getNextReviewDate = (lastReviewed, repetitions) => {
+        // Use the next interval, capping at the max defined interval
+        const interval = repetitionIntervals[Math.min(repetitions, repetitionIntervals.length - 1)];
+        return addDays(parseISO(lastReviewed), interval);
+    };
+
+    const getReviewStatus = (reviewDate) => {
+        const daysDiff = differenceInDays(reviewDate, today);
+        if (daysDiff < 0) return { label: 'Overdue', color: 'text-red-500', Icon: AlertCircle };
+        if (daysDiff === 0) return { label: 'Due Today', color: 'text-orange-500', Icon: AlertCircle };
+        return { label: `In ${daysDiff} day(s)`, color: 'text-blue-500', Icon: Calendar };
+    };
+    
+    // Sort problems by the next review date
+    const sortedProblems = [...problems].sort((a, b) => {
+        const dateA = getNextReviewDate(a.lastReviewed, a.repetitions);
+        const dateB = getNextReviewDate(b.lastReviewed, b.repetitions);
+        return dateA - dateB;
+    });
+
+    return (
+        <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Review Schedule</h3>
+            {sortedProblems.length > 0 ? (
+                <ul className="space-y-4">
+                    {sortedProblems.map(problem => {
+                        const nextReviewDate = getNextReviewDate(problem.lastReviewed, problem.repetitions);
+                        const { label, color, Icon } = getReviewStatus(nextReviewDate);
+
+                        return (
+                            <li key={problem.id} className={`flex items-center justify-between p-3 rounded-md transition-colors ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                                <div className="flex items-center">
+                                    <Icon className={`mr-3 flex-shrink-0 ${color}`} size={20} />
+                                    <div>
+                                        <span className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{problem.name}</span>
+                                        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Repetition: #{problem.repetitions + 1}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className={`text-sm font-semibold ${color}`}>{label}</p>
+                                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        {format(nextReviewDate, 'MMM dd, yyyy')}
+                                    </p>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            ) : (
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                     <CheckCircle className="text-green-500 mb-2" size={32} />
+                    <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>All Caught Up!</p>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Complete a problem to start your review schedule.</p>
+                </div>
+            )}
+        </div>
+    );
+});
+
 
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
 const ProblemCard = ({ problem, onToggle, onSaveNote, notes, isDarkMode, getDifficultyColor, formatNoteContent, insertCodeBlock }) => {
@@ -628,6 +697,8 @@ const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
                 </div>
                 <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stats.completed} of {stats.total} problems completed</p>
             </div>
+            
+            <SpacedRepetitionList problems={spacedRepetition} isDarkMode={isDarkMode} />
         </div>
     );
 };
@@ -930,7 +1001,6 @@ const StudyPlanner = ({onLogout, user}) => {
     const [completedProblems, setCompletedProblems] = useState([]);
     const [notes, setNotes] = useState({});
     const [customProblems, setCustomProblems] = useState([]);
-    const [spacedRepetition, setSpacedRepetition] = useState([]);
     const [noteMode, setNoteMode] = useState('text'); // 'text' or 'code'
     const [showSetupError, setShowSetupError] = useState(false);
      const renderHeader = () => (
@@ -1021,7 +1091,6 @@ const StudyPlanner = ({onLogout, user}) => {
     
 
 
-
     // Form state
     const [formData, setFormData] = useState({
         level: 'beginner',
@@ -1052,7 +1121,6 @@ const StudyPlanner = ({onLogout, user}) => {
     setCompletedProblems([]);
     setNotes({});
     setCustomProblems([]);
-    setSpacedRepetition([]);
     setActiveTab('setup');
 
     // Call the function passed down from App.js to update the global auth state
@@ -1250,44 +1318,38 @@ const StudyPlanner = ({onLogout, user}) => {
     };
 
     const toggleProblemStatus = (problemId) => {
-        setProblems(prev => prev.map(p => {
-            if (p.id === problemId) {
-                const newStatus = p.status === 'completed' ? 'pending' : 'completed';
-
+        const updateProblemLogic = (problem) => {
+            if (problem.id === problemId) {
+                const newStatus = problem.status === 'completed' ? 'pending' : 'completed';
                 if (newStatus === 'completed') {
-                    // Add to spaced repetition
-                    const reviewDates = [
-                        new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day
-                        new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
-                        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week
-                        new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 2 weeks
-                    ];
-
-                    setSpacedRepetition(prev => [...prev, {
-                        problemId,
-                        problemName: p.name,
-                        reviewDates,
-                        completedReviews: []
-                    }]);
-
-                    setCompletedProblems(prev => [...prev, { ...p, completedDate: new Date() }]);
+                    // When a problem is marked as complete, set its review date and repetition stage.
+                    return {
+                        ...problem,
+                        status: 'completed',
+                        lastReviewed: new Date().toISOString(),
+                        // If it's the first time, start at stage 0. If re-completing a review, increment the stage.
+                        repetitions: problem.repetitions ? problem.repetitions + 1 : 0,
+                    };
+                } else {
+                    // If unmarked, reset its review progress.
+                    return {
+                        ...problem,
+                        status: 'pending',
+                        lastReviewed: null,
+                        repetitions: 0,
+                    };
                 }
-
-                return { ...p, status: newStatus };
             }
-            return p;
-        }));
-
-        // Update the studyPlan state as well to reflect changes in the UI
-        setStudyPlan(prev => prev.map(day => ({
+            return problem;
+        };
+    
+        // Update the master list of problems
+        setProblems(prev => prev.map(updateProblemLogic));
+    
+        // Also update the nested studyPlan state to keep the UI consistent
+        setStudyPlan(prevPlan => prevPlan.map(day => ({
             ...day,
-            problems: day.problems.map(p => {
-                if (p.id === problemId) {
-                    const newStatus = p.status === 'completed' ? 'pending' : 'completed';
-                    return { ...p, status: newStatus };
-                }
-                return p;
-            })
+            problems: day.problems.map(updateProblemLogic)
         })));
     };
 
@@ -1409,37 +1471,37 @@ const StudyPlanner = ({onLogout, user}) => {
                 </div>
             </header>
 
-            <nav className={`shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>                 
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">                     
-        <div className="flex space-x-4 sm:space-x-8 overflow-x-auto whitespace-nowrap">                         
-            {[                             
-                { id: 'setup', label: 'Setup', icon: Target },                             
-                { id: 'dashboard', label: 'Dashboard', icon: Calendar },                             
-                { id: 'tasks', label: 'Task Manager', icon: CheckCircle },                         
-            ].map(tab => (                             
-                <button                                 
-                    key={tab.id}                                 
+            <nav className={`shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>               
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">                   
+        <div className="flex space-x-4 sm:space-x-8 overflow-x-auto whitespace-nowrap">                      
+            {[                  
+                { id: 'setup', label: 'Setup', icon: Target },                     
+                { id: 'dashboard', label: 'Dashboard', icon: Calendar },                       
+                { id: 'tasks', label: 'Task Manager', icon: CheckCircle },                  
+            ].map(tab => (                     
+                <button                         
+                    key={tab.id}                            
                     onClick={() => {
                         if (tab.id !== 'setup' && !studyPlan) {
                             setShowSetupError(true);
                         } else {
                             setActiveTab(tab.id);
                         }
-                    }}                                
-                    className={`flex items-center gap-2 px-2 sm:px-3 py-4 text-sm font-medium border-b-2 transition-colors duration-300 ${                                     
-                        activeTab === tab.id                                         
-                            ? 'border-blue-500 text-blue-600'                                         
-                            : isDarkMode                                             
-                                ? 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'                                             
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'                                 
-                    } ${tab.id !== 'setup' && !studyPlan ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}                             
-                >                                 
-                    <tab.icon size={18} />                                 
-                    {tab.label}                             
-                </button>                         
-            ))}                     
-        </div>                 
-    </div>             
+                    }}                      
+                    className={`flex items-center gap-2 px-2 sm:px-3 py-4 text-sm font-medium border-b-2 transition-colors duration-300 ${                                
+                        activeTab === tab.id                                    
+                            ? 'border-blue-500 text-blue-600'                                     
+                            : isDarkMode                                   
+                                ? 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'                                     
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'                             
+                    } ${tab.id !== 'setup' && !studyPlan ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}                  
+                >                       
+                    <tab.icon size={18} />                       
+                    {tab.label}                 
+                </button>                 
+            ))}                   
+        </div>                  
+    </div>               
 </nav>
 
 {/* Error Modal - Add this after your navigation */}
@@ -1493,11 +1555,16 @@ const StudyPlanner = ({onLogout, user}) => {
                     handleFormSubmit={handleFormSubmit}
                     availableTopics={availableTopics}
                 />}
-                {activeTab === 'dashboard' && studyPlan && <Dashboard
-                    isDarkMode={isDarkMode}
-                    stats={getProgressStats()}
-                    spacedRepetition={spacedRepetition}
-                />}
+                {activeTab === 'dashboard' && studyPlan && (() => {
+                    const problemsForReview = problems.filter(p => p.status === 'completed' && p.lastReviewed);
+                    return (
+                        <Dashboard
+                            isDarkMode={isDarkMode}
+                            stats={getProgressStats()}
+                            spacedRepetition={problemsForReview}
+                        />
+                    );
+                })()}
                 {activeTab === 'tasks' && studyPlan && <TaskManager
                     studyPlan={studyPlan}
                     addCustomProblem={addCustomProblem}
@@ -1547,7 +1614,7 @@ const StudyPlanner = ({onLogout, user}) => {
                     </div>
                 </div>
             </footer>
-            
+             
         </div>
     );
 };
