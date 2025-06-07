@@ -339,7 +339,8 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
             </div>
 
             {/* --- GOOGLE LOGIN INTEGRATION --- */}
-            <div className="relative flex py-5 items-center">
+        {/* --- GOOGLE LOGIN INTEGRATION --- */}
+<div className="relative flex py-5 items-center">
     <div className="flex-grow border-t border-white/30"></div>
     <span className="flex-shrink mx-4 text-white/90 font-medium">OR</span>
     <div className="flex-grow border-t border-white/30"></div>
@@ -353,10 +354,11 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
         theme="outline"
         size="large"
         shape="rectangular"
-        width="320px"
+        /* The fixed "width" prop has been removed to make the button responsive */
         useOneTap
     />
 </div>
+{/* --- END GOOGLE LOGIN --- */}
             {/* --- END GOOGLE LOGIN --- */}
 
 
