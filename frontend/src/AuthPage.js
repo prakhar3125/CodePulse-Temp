@@ -346,15 +346,17 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
             </div>
 
             <div className="flex justify-center">
-                <GoogleLogin
-                    onSuccess={handleGoogleLoginSuccess}
-                    onError={handleGoogleLoginError}
-                    theme="outline"
-                    size="large"
-                    shape="rectangular"
-                    width="320px"
-                    useOneTap
-                />
+                <div className="w-full">
+                    <GoogleLogin
+                        onSuccess={handleGoogleLoginSuccess}
+                        onError={handleGoogleLoginError}
+                        theme="outline"
+                        size="large"
+                        shape="rectangular"
+                        width="100%"
+                        useOneTap
+                    />
+                </div>
             </div>
             {/* --- END GOOGLE LOGIN --- */}
 
