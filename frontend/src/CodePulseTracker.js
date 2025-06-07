@@ -1340,7 +1340,7 @@ const StudyPlanner = ({onLogout, user}) => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center py-4">
                         {/* // UPDATED CLASSNAME: Adjusted font size for mobile. */}
-                    <h1 className={`text-4xl font-extrabold drop-shadow-xl mb-2 font-mono tracking-wide transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    <h1 className={`text-2xl font-extrabold drop-shadow-xl mb-2 font-mono tracking-wide transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-black'}`}>
   <span className="text-blue-600">&lt;/&gt;</span>CodePulse
 </h1>
                         <div className="flex items-center gap-4">
