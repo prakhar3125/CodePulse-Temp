@@ -90,11 +90,11 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
 
   // Enhanced input styling with improved visibility
   const inputClass = (hasError) =>
-    `block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 ${
-      hasError
-        ? 'border-red-400 bg-red-50/20 text-white placeholder-red-200'
-        : 'border-white/30 bg-white/20 text-white placeholder-white/80 hover:border-white/40 focus:bg-white/25 backdrop-blur-sm'
-    }`;
+  `block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 ${
+    hasError
+      ? 'border-red-400 bg-red-50/20 text-red-800 placeholder-red-400'
+      : 'border-white/30 bg-white/20 text-black placeholder-white/80 hover:border-white/40 focus:bg-white/25 backdrop-blur-sm'
+  }`;
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4">
