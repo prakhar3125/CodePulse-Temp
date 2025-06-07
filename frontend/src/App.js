@@ -309,6 +309,13 @@ const insertCodeBlock = (currentText, cursorPosition, language = 'javascript') =
 
   // Setup Form Component
   const SetupForm = () => {
+    // Add this array right at the top of SetupForm
+const durationPresets = [
+    { label: '2 Weeks', days: 14 },
+    { label: '1 Month', days: 30 },
+    { label: '3 Months', days: 90 },
+    { label: '6 Months', days: 180 },
+];
     const [showAllTopics, setShowAllTopics] = useState(false);
     
     const handleTopicToggle = (topicId) => {
@@ -377,38 +384,86 @@ const insertCodeBlock = (currentText, cursorPosition, language = 'javascript') =
           </div>
 
           {/* Study Duration Section */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              <Calendar className="inline w-4 h-4 mr-2" />
-              Study Duration
-            </label>
-            <div className="flex items-center gap-4">
-              <input
-                type="range"
-                min="7"
-                max="365"
-                value={formData.days}
-                onChange={(e) => setFormData(prev => ({ ...prev, days: parseInt(e.target.value) }))}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="min-w-0 flex items-center gap-2">
-                <input
-                  type="number"
-                  min="7"
-                  max="365"
-                  value={formData.days}
-                  onChange={(e) => setFormData(prev => ({ ...prev, days: parseInt(e.target.value) || 7 }))}
-                  className="w-20 p-2 border border-gray-300 rounded-lg text-center"
-                />
-                <span className="text-gray-600 font-medium">days</span>
-              </div>
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>1 week</span>
-              <span className="font-medium text-blue-600">{formData.days} days selected</span>
-              <span>1 year</span>
-            </div>
+          {/* Ultra-Clean Study Duration Component */}
+<div className="space-y-3">
+  <label className="flex items-center text-sm font-medium text-gray-700">
+    <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+    Study Duration
+  </label>
+  
+  {(() => {
+    const presets = [
+      { label: '2 Weeks', days: 14 },
+      { label: '1 Month', days: 30 },
+      { label: '3 Months', days: 90 }
+    ];
+    
+    const isPreset = presets.some(p => p.days === formData.days);
+    const currentDays = formData.days || 30;
+    
+    return (
+      <div className="space-y-4">
+        {/* Clean Toggle Buttons */}
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          {presets.map((preset) => (
+            <button
+              key={preset.days}
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, days: preset.days }))}
+              className={`flex-1 text-center py-2.5 px-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                formData.days === preset.days
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+        
+        {/* Minimal Custom Input */}
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <span className="text-sm text-gray-600">Custom duration</span>
+          <div className="flex items-center space-x-2">
+            <input
+              type="number"
+              min="1"
+              max="365"
+              value={formData.days || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData(prev => ({ ...prev, days: value === '' ? '' : parseInt(value) || '' }));
+              }}
+              onBlur={(e) => {
+                const value = parseInt(e.target.value);
+                if (!value || value < 1) {
+                  setFormData(prev => ({ ...prev, days: 30 }));
+                } else if (value > 365) {
+                  setFormData(prev => ({ ...prev, days: 365 }));
+                }
+              }}
+              className="w-16 text-center text-sm font-medium bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="30"
+            />
+            <span className="text-sm text-gray-500">days</span>
           </div>
+        </div>
+        
+        {/* Subtle Duration Preview */}
+        <div className="text-center">
+          <span className="text-xs text-gray-500">
+            Study plan: {currentDays} day{currentDays !== 1 ? 's' : ''} 
+            {currentDays >= 30 && (
+              <span className="ml-1">
+                ({Math.round(currentDays / 30 * 10) / 10} month{currentDays >= 60 ? 's' : ''})
+              </span>
+            )}
+          </span>
+        </div>
+      </div>
+    );
+  })()}
+</div>
 
           {/* Topic Selection Section */}
           {/* Topic Selection Section */}
