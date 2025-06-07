@@ -1133,81 +1133,108 @@ const StudyPlanner = ({onLogout, user}) => {
     ];
 
     const generateProblems = (level, days, selectedTopics) => {
-        // Use imported data instead of hardcoded problems
-        let allProblems = problemsData[level] || problemsData.beginner;
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
 
-        // Filter by selected topics if any are specified
+        // 1. Define the difficulty distributions per level
+        const distributions = {
+            beginner: { easy: 0.60, medium: 0.30, hard: 0.10 },
+            intermediate: { easy: 0.25, medium: 0.50, hard: 0.25 },
+            pro: { easy: 0.10, medium: 0.30, hard: 0.60 },
+        };
+        const distribution = distributions[level];
+
+        // 2. Create a unified pool of all problems from the JSON data
+        const allProblems = [
+            ...problemsData.beginner,
+            ...problemsData.intermediate,
+            ...problemsData.pro,
+        ];
+        // Ensure problems are unique by using a Map
+        const uniqueProblems = Array.from(new Map(allProblems.map(p => [p.id, p])).values());
+
+        // 3. Filter this pool by selected topics, if any
+        let topicFilteredProblems = uniqueProblems;
         if (selectedTopics && selectedTopics.length > 0) {
             const topicNames = selectedTopics.map(topicId => {
                 const topic = availableTopics.find(t => t.id === topicId);
-                return topic ? topic.name : topicId;
-            });
+                return topic ? topic.name : '';
+            }).filter(Boolean);
 
-            allProblems = allProblems.filter(problem =>
+            const filtered = uniqueProblems.filter(problem =>
                 topicNames.some(topicName =>
-                    problem.topic.toLowerCase().includes(topicName.toLowerCase()) ||
-                    topicName.toLowerCase().includes(problem.topic.toLowerCase())
+                    problem.topic.toLowerCase().includes(topicName.toLowerCase())
                 )
             );
+
+            // Only apply filter if it results in some problems, otherwise use all topics
+            if (filtered.length > 0) {
+                topicFilteredProblems = filtered;
+            }
         }
 
-        // If no problems match the selected topics, fall back to all problems
-        if (allProblems.length === 0) {
-            allProblems = problemsData[level] || problemsData.beginner;
-        }
+        // 4. Separate the filtered problems into difficulty buckets
+        const easyPool = shuffleArray(topicFilteredProblems.filter(p => p.difficulty === 'Easy'));
+        const mediumPool = shuffleArray(topicFilteredProblems.filter(p => p.difficulty === 'Medium'));
+        const hardPool = shuffleArray(topicFilteredProblems.filter(p => p.difficulty === 'Hard'));
+        
+        // 5. Determine the total number of problems for the plan
+        // Let's aim for a consistent number of problems per day for better planning.
+        const PROBLEMS_PER_DAY = 3; 
+        const totalProblemsInPlan = days * PROBLEMS_PER_DAY;
 
-        const totalProblems = allProblems.length;
+        // 6. Calculate how many of each difficulty to select
+        const numEasy = Math.floor(totalProblemsInPlan * distribution.easy);
+        const numMedium = Math.floor(totalProblemsInPlan * distribution.medium);
+        const numHard = totalProblemsInPlan - numEasy - numMedium;
 
-        // Calculate problems per day
-        let problemsPerDay;
-        if (totalProblems < days) {
-            problemsPerDay = 1; // 1 problem per day if we have fewer problems than days
-        } else {
-            problemsPerDay = Math.ceil(totalProblems / days);
-        }
+        // 7. Select the problems, taking as many as are available up to the calculated number
+        const selectedEasy = easyPool.slice(0, numEasy);
+        const selectedMedium = mediumPool.slice(0, numMedium);
+        const selectedHard = hardPool.slice(0, numHard);
 
+        // 8. Combine into the final pool for the plan and shuffle them
+        let finalProblemPool = shuffleArray([
+            ...selectedEasy,
+            ...selectedMedium,
+            ...selectedHard
+        ]);
+
+        // 9. Distribute the final, curated pool of problems across the days
         const dailyPlan = [];
-        let problemIndex = 0;
+        const totalProblemsGenerated = finalProblemPool.length;
 
         for (let day = 1; day <= days; day++) {
             const currentDate = new Date();
             currentDate.setDate(currentDate.getDate() + (day - 1));
 
-            const dayProblems = [];
-
-            // Add problems for this day
-            if (totalProblems < days) {
-                // If fewer problems than days, add 1 problem per day until problems run out
-                if (problemIndex < totalProblems) {
-                    dayProblems.push({
-                        ...allProblems[problemIndex],
-                        status: 'pending',
-                        assignedDay: day
-                    });
-                    problemIndex++;
-                }
-            } else {
-                // If more problems than days, distribute evenly
-                const startIdx = (day - 1) * problemsPerDay;
-                const endIdx = Math.min(startIdx + problemsPerDay, totalProblems);
-
-                for (let i = startIdx; i < endIdx; i++) {
-                    dayProblems.push({
-                        ...allProblems[i],
-                        status: 'pending',
-                        assignedDay: day
-                    });
-                }
+            // Distribute problems as evenly as possible
+            const problemsForThisDay = [];
+            const start = Math.floor(totalProblemsGenerated * (day - 1) / days);
+            const end = Math.floor(totalProblemsGenerated * day / days);
+            
+            for (let i = start; i < end; i++) {
+                problemsForThisDay.push({
+                    ...finalProblemPool[i],
+                    status: 'pending',
+                    assignedDay: day
+                });
             }
 
             dailyPlan.push({
                 day,
                 date: currentDate.toDateString(),
-                dateObj: new Date(currentDate), // For easier date handling
-                problems: dayProblems
+                dateObj: new Date(currentDate),
+                problems: problemsForThisDay
             });
         }
-
         return dailyPlan;
     };
 
