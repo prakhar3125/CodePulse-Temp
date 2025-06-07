@@ -340,22 +340,23 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
 
             {/* --- GOOGLE LOGIN INTEGRATION --- */}
             <div className="relative flex py-5 items-center">
-                <div className="flex-grow border-t border-white/30"></div>
-                <span className="flex-shrink mx-4 text-white/90 font-medium">OR</span>
-                <div className="flex-grow border-t border-white/30"></div>
-            </div>
+    <div className="flex-grow border-t border-white/30"></div>
+    <span className="flex-shrink mx-4 text-white/90 font-medium">OR</span>
+    <div className="flex-grow border-t border-white/30"></div>
+</div>
 
-            <div className="w-full">
-                <GoogleLogin
-                    onSuccess={handleGoogleLoginSuccess}
-                    onError={handleGoogleLoginError}
-                    theme="outline"
-                    size="large"
-                    shape="rectangular"
-                    width="100%"
-                    useOneTap
-                />
-            </div>
+{/* MODIFIED PART STARTS HERE */}
+<div className="grid place-items-center">
+    <GoogleLogin
+        onSuccess={handleGoogleLoginSuccess}
+        onError={handleGoogleLoginError}
+        theme="outline"
+        size="large"
+        shape="rectangular"
+        width="320px"
+        useOneTap
+    />
+</div>
             {/* --- END GOOGLE LOGIN --- */}
 
 
