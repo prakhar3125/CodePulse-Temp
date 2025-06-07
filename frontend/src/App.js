@@ -1228,12 +1228,13 @@ const StudyPlanner = () => {
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
       {/* Header */}
+      {/* Header */}
       <header className={`shadow-sm border-b transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <h1 className={`text-2xl font-bold flex items-center gap-2 transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               <BookOpen className="text-blue-600" />
-              AI Study Planner
+              CodePulse - Personalized Coding Progress Tracker
             </h1>
             <div className="flex items-center gap-4">
               <button
