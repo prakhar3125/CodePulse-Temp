@@ -10,6 +10,7 @@ const ProblemCard = ({ problem, onToggle, onSaveNote, notes, isDarkMode, getDiff
     const [textareaRef, setTextareaRef] = useState(null);
     const hasNotes = notes[problem.id] && notes[problem.id].trim().length > 0;
 
+
     const handleSaveNote = () => {
         onSaveNote(problem.id, noteText);
         setNotesMode('view');
@@ -932,6 +933,8 @@ const StudyPlanner = () => {
     const [customProblems, setCustomProblems] = useState([]);
     const [spacedRepetition, setSpacedRepetition] = useState([]);
     const [noteMode, setNoteMode] = useState('text'); // 'text' or 'code'
+    const [showSetupError, setShowSetupError] = useState(false);
+
 
 
     // Form state
@@ -1299,36 +1302,80 @@ const StudyPlanner = () => {
                 </div>
             </header>
 
-            {/* Navigation */}
-            <nav className={`shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* // UPDATED CLASSNAME: Added overflow-x-auto for horizontal scrolling on mobile. */}
-                    <div className="flex space-x-4 sm:space-x-8 overflow-x-auto whitespace-nowrap">
-                        {[
-                            { id: 'setup', label: 'Setup', icon: Target },
-                            { id: 'dashboard', label: 'Dashboard', icon: Calendar },
-                            { id: 'tasks', label: 'Task Manager', icon: CheckCircle },
-                        ].map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                // UPDATED CLASSNAME: Reduced horizontal padding on mobile for a tighter fit.
-                                className={`flex items-center gap-2 px-2 sm:px-3 py-4 text-sm font-medium border-b-2 transition-colors duration-300 ${
-                                    activeTab === tab.id
-                                        ? 'border-blue-500 text-blue-600'
-                                        : isDarkMode
-                                            ? 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                                disabled={tab.id !== 'setup' && !studyPlan}
-                            >
-                                <tab.icon size={18} />
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
+            <nav className={`shadow-sm transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>                 
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">                     
+        <div className="flex space-x-4 sm:space-x-8 overflow-x-auto whitespace-nowrap">                         
+            {[                             
+                { id: 'setup', label: 'Setup', icon: Target },                             
+                { id: 'dashboard', label: 'Dashboard', icon: Calendar },                             
+                { id: 'tasks', label: 'Task Manager', icon: CheckCircle },                         
+            ].map(tab => (                             
+                <button                                 
+                    key={tab.id}                                 
+                    onClick={() => {
+                        if (tab.id !== 'setup' && !studyPlan) {
+                            setShowSetupError(true);
+                        } else {
+                            setActiveTab(tab.id);
+                        }
+                    }}                                
+                    className={`flex items-center gap-2 px-2 sm:px-3 py-4 text-sm font-medium border-b-2 transition-colors duration-300 ${                                     
+                        activeTab === tab.id                                         
+                            ? 'border-blue-500 text-blue-600'                                         
+                            : isDarkMode                                             
+                                ? 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'                                             
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'                                 
+                    } ${tab.id !== 'setup' && !studyPlan ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}                             
+                >                                 
+                    <tab.icon size={18} />                                 
+                    {tab.label}                             
+                </button>                         
+            ))}                     
+        </div>                 
+    </div>             
+</nav>
+
+{/* Error Modal - Add this after your navigation */}
+{showSetupError && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className={`max-w-md w-full mx-4 p-6 rounded-lg shadow-xl ${
+            isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+        }`}>
+            <div className="flex items-center mb-4">
+                <div className="flex-shrink-0">
+                    <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.764 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
                 </div>
-            </nav>
+                <h3 className="ml-3 text-lg font-medium">Setup Required</h3>
+            </div>
+            <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                Complete Personalized setup first and generate your Plan to access Dashboard and Task Manager.
+            </p>
+            <div className="flex justify-end space-x-3">
+                <button
+                    onClick={() => setShowSetupError(false)}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                        isDarkMode 
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Cancel
+                </button>
+                <button
+                    onClick={() => {
+                        setShowSetupError(false);
+                        setActiveTab('setup');
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                    Go to Setup
+                </button>
+            </div>
+        </div>
+    </div>
+)}
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
