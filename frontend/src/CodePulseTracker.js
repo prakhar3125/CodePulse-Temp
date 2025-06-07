@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Circle, Plus, BookOpen, Target, Clock, Bell, Link, Edit, Trash2, Star, Brain, Moon, Sun } from 'lucide-react';
 import AuthPage from './AuthPage'; // ADD THIS IMPORT AT THE TOP
 import problemsData from './problems.json';
+import { useNavigate } from 'react-router-dom'; // <--- ADD THIS IMPORT --->
 
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
 const ProblemCard = ({ problem, onToggle, onSaveNote, notes, isDarkMode, getDifficultyColor, formatNoteContent, insertCodeBlock }) => {
