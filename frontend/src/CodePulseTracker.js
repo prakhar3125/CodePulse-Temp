@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, Circle, Plus, BookOpen, Target, Clock, Bell, Link, Edit, Trash2, Star, Brain, Moon, Sun } from 'lucide-react';
+import { Calendar, CheckCircle, Circle, Plus, BookOpen, Target,Code, Clock, Bell, Link, Edit, Trash2, Star, Brain, Moon, Sun } from 'lucide-react';
 import AuthPage from './AuthPage'; // ADD THIS IMPORT AT THE TOP
 import problemsData from './problems.json';
 
@@ -933,6 +933,92 @@ const StudyPlanner = ({onLogout, user}) => {
     const [spacedRepetition, setSpacedRepetition] = useState([]);
     const [noteMode, setNoteMode] = useState('text'); // 'text' or 'code'
     const [showSetupError, setShowSetupError] = useState(false);
+     const renderHeader = () => (
+        <header className={`sticky top-0 z-50 backdrop-blur-lg transition-all duration-300 ${
+            isDarkMode 
+                ? 'bg-gray-900/90 border-gray-700' 
+                : 'bg-white/90 border-gray-200'
+        } border-b`}>
+            <div className="max-w-7xl mx-auto px-4 py-4">
+                <div className="flex items-center justify-between">
+                    {/* Logo section */}
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl transition-colors duration-300 ${
+                            isDarkMode ? 'bg-blue-500/20' : 'bg-blue-100'
+                        }`}>
+                            <Code className={`w-6 h-6 ${
+                                isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                            }`} />
+                        </div>
+                        <div>
+                            <h1 className={`text-xl font-bold transition-colors duration-300 ${
+                                isDarkMode ? 'text-white' : 'text-gray-900'
+                            }`}>
+                                CodePulse Tracker
+                            </h1>
+                            <p className={`text-xs transition-colors duration-300 ${
+                                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
+                                Your Coding Progress Dashboard
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* User info and controls */}
+                    <div className="flex items-center gap-4">
+                        {/* Dark mode toggle */}
+                        <button
+                            onClick={() => setIsDarkMode(!isDarkMode)}
+                            className={`p-2 rounded-lg transition-all duration-300 ${
+                                isDarkMode 
+                                    ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
+                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                            }`}
+                            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                        >
+                            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                        </button>
+
+                        {/* User Profile Section */}
+                        <div className="flex items-center gap-3">
+                            <img
+                                src={user?.avatar}
+                                alt={user?.name}
+                                className="w-8 h-8 rounded-full border-2 border-blue-200"
+                            />
+                            <div className="hidden sm:block">
+                                <p className={`text-sm font-medium transition-colors duration-300 ${
+                                    isDarkMode ? 'text-white' : 'text-gray-900'
+                                }`}>
+                                    {user?.name}
+                                </p>
+                                <p className={`text-xs transition-colors duration-300 ${
+                                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                }`}>
+                                    {user?.email}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Logout Button */}
+                        <button
+                            onClick={onLogout}
+                            className={`text-sm px-3 py-1 rounded-lg transition-colors duration-300 ${
+                                isDarkMode
+                                    ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                            }`}
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+    );
+
+
+    
 
 
 
@@ -1273,17 +1359,13 @@ const StudyPlanner = ({onLogout, user}) => {
 
                             <div className="flex items-center gap-3">
                                 <img
-                                    src={user?.avatar || '[https://via.placeholder.com/150](https://via.placeholder.com/150)'} // Fallback for avatar
-                                    alt={user?.name || 'User'} // Fallback for alt text
+                                    src={user?.avatar}
+                                    alt={user?.name}
                                     className="w-8 h-8 rounded-full border-2 border-blue-200"
                                 />
                                 <div className="hidden sm:block">
-                                    <p className={`text-sm font-medium transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                        {user?.name || 'Guest User'} {/* Display user name or 'Guest User' */}
-                                    </p>
-                                    <p className={`text-xs transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        {user?.email || 'guest@example.com'} {/* Display user email or a default */}
-                                    </p>
+                                    <p className={`text-sm font-medium transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user?.name}</p>
+                                    <p className={`text-xs transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{user?.email}</p>
                                 </div>
                             </div>
                             <button

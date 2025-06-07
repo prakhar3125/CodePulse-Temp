@@ -1,5 +1,3 @@
-// App.js
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import AuthPage from './AuthPage';
@@ -9,15 +7,34 @@ import StudyPlanner from './CodePulseTracker'; // Assuming you renamed it to Stu
 const AppContent = () => {
     const navigate = useNavigate();
     
-    // Initialize isAuthenticated. You might want to check localStorage here in a real app.
-    const [isAuthenticated, setIsAuthenticated] = useState(false); 
+    // Initialize authentication state and user data
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userData, setUserData] = useState(null);
+    
+    // Check for existing user data on app load (optional - for persistence)
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUserData(parsedUser);
+                setIsAuthenticated(true);
+                console.log("App.js: Restored user from localStorage:", parsedUser);
+            } catch (error) {
+                console.error("Error parsing stored user data:", error);
+                localStorage.removeItem('user'); // Clear corrupted data
+            }
+        }
+    }, []);
 
     // This function will be called by AuthPage on successful sign-in/sign-up
-    const handleAuthSuccess = (userData) => { 
-        console.log("App.js: handleAuthSuccess called. Setting isAuthenticated to true.");
+    const handleAuthSuccess = (userInfo) => {
+        console.log("App.js: handleAuthSuccess called with user data:", userInfo);
         setIsAuthenticated(true);
-        // Optionally, store user data if needed later
-        // localStorage.setItem('user', JSON.stringify(userData));
+        setUserData(userInfo);
+        
+        // Store user data for persistence (optional)
+        localStorage.setItem('user', JSON.stringify(userInfo));
         
         // Navigate immediately after setting authentication
         setTimeout(() => {
@@ -25,12 +42,14 @@ const AppContent = () => {
         }, 100);
     };
 
-    // New: Function to handle logout
+    // Function to handle logout
     const handleLogout = () => {
-        console.log("App.js: handleLogout called. Setting isAuthenticated to false.");
+        console.log("App.js: handleLogout called. Clearing user data.");
         setIsAuthenticated(false);
-        // Optionally, clear user data from localStorage if stored
-        // localStorage.removeItem('user');
+        setUserData(null);
+        
+        // Clear user data from localStorage
+        localStorage.removeItem('user');
         
         // Navigate immediately after logout
         setTimeout(() => {
@@ -41,7 +60,8 @@ const AppContent = () => {
     // Log the state every time it changes
     useEffect(() => {
         console.log("App.js: isAuthenticated state changed to:", isAuthenticated);
-    }, [isAuthenticated]);
+        console.log("App.js: userData:", userData);
+    }, [isAuthenticated, userData]);
 
     return (
         <Routes>
@@ -62,8 +82,11 @@ const AppContent = () => {
             <Route
                 path="/track"
                 element={
-                    isAuthenticated ? (
-                        <StudyPlanner onLogout={handleLogout} /* Pass onLogout prop here */ />
+                    isAuthenticated && userData ? (
+                        <StudyPlanner 
+                            onLogout={handleLogout} 
+                            user={userData} // Pass the user data here
+                        />
                     ) : (
                         // If not authenticated, redirect back to authentication page
                         <Navigate to="/authentication" replace />
