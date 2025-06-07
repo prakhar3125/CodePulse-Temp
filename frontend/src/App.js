@@ -411,80 +411,69 @@ const insertCodeBlock = (currentText, cursorPosition, language = 'javascript') =
           </div>
 
           {/* Topic Selection Section */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium text-gray-700">
-                <BookOpen className="inline w-4 h-4 mr-2" />
-                Focus Topics {formData.topics.length > 0 && `(${formData.topics.length} selected)`}
-              </label>
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, topics: [] }))}
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                Clear All
-              </button>
-            </div>
-            
-            {formData.topics.length > 0 && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm font-medium text-blue-800 mb-1">Selected Topics:</p>
-                <p className="text-sm text-blue-700">{getSelectedTopicNames()}</p>
-              </div>
-            )}
+          {/* Topic Selection Section */}
+<div className="bg-gray-50 p-4 rounded-lg">
+  <div className="flex items-center justify-between mb-4">
+    <label className="text-sm font-medium text-gray-700">
+      <BookOpen className="inline w-4 h-4 mr-2" />
+      Focus Topics {formData.topics.length > 0 && `(${formData.topics.length} selected)`}
+    </label>
+    <button
+      type="button"
+      onClick={() => setFormData(prev => ({ ...prev, topics: [] }))}
+      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+    >
+      Clear All
+    </button>
+  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              {displayedTopics.map(topic => (
-                <div key={topic.id} className="relative">
-                  <input
-                    type="checkbox"
-                    id={topic.id}
-                    checked={formData.topics.includes(topic.id)}
-                    onChange={() => handleTopicToggle(topic.id)}
-                    className="sr-only"
-                  />
-                  <label
-                    htmlFor={topic.id}
-                    className={`block p-3 rounded-lg border-2 cursor-pointer transition-all hover:shadow-sm ${
-                      formData.topics.includes(topic.id)
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{topic.name}</div>
-                        <div className="text-xs text-gray-600 mt-1">{topic.description}</div>
-                      </div>
-                      {formData.topics.includes(topic.id) && (
-                        <CheckCircle className="w-5 h-5 text-blue-500" />
-                      )}
-                    </div>
-                  </label>
-                </div>
-              ))}
-            </div>
+  {formData.topics.length > 0 && (
+    <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+      <p className="text-sm font-medium text-blue-800 mb-1">Selected Topics:</p>
+      <p className="text-sm text-blue-700">{getSelectedTopicNames()}</p>
+    </div>
+  )}
 
-            {availableTopics.length > 8 && (
-              <button
-                type="button"
-                onClick={() => setShowAllTopics(!showAllTopics)}
-                className="mt-3 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-              >
-                {showAllTopics ? 'Show Less' : `Show All ${availableTopics.length} Topics`}
-                <span className="text-xs">({availableTopics.length - 8} more)</span>
-              </button>
-            )}
-
-            <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>💡 Tip:</strong> {formData.topics.length === 0 
-                  ? 'Select specific topics to get focused practice, or leave empty for a well-rounded curriculum.'
-                  : `Your plan will focus on ${formData.topics.length} topic${formData.topics.length > 1 ? 's' : ''} with curated problems.`
-                }
-              </p>
-            </div>
+  {/* Minimalist Scrollable List */}
+  <div className="border rounded-lg max-h-72 overflow-y-auto">
+    <ul className="divide-y divide-gray-200">
+      {availableTopics.map(topic => (
+        <li
+          key={topic.id}
+          onClick={() => handleTopicToggle(topic.id)}
+          className={`p-3 cursor-pointer transition-colors flex items-center justify-between ${
+            formData.topics.includes(topic.id)
+              ? 'bg-blue-50'
+              : 'hover:bg-gray-100 bg-white'
+          }`}
+        >
+          <div>
+            <span className={`font-medium ${
+              formData.topics.includes(topic.id)
+                ? 'text-blue-700'
+                : 'text-gray-800'
+            }`}>
+              {topic.name}
+            </span>
+            <p className="text-xs text-gray-500 mt-1">{topic.description}</p>
           </div>
+          {formData.topics.includes(topic.id) && (
+            <CheckCircle className="w-5 h-5 text-blue-500 flex-shrink-0 ml-4" />
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+    <p className="text-sm text-yellow-800">
+      <strong>💡 Tip:</strong> {formData.topics.length === 0 
+        ? 'Select specific topics for focused practice, or leave empty for a well-rounded curriculum.'
+        : `Your plan will focus on ${formData.topics.length} topic${formData.topics.length > 1 ? 's' : ''} with curated problems.`
+      }
+    </p>
+  </div>
+</div>
 
           {/* Generate Button */}
           <button
