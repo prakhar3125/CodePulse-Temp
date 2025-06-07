@@ -125,9 +125,10 @@ const AuthPage = ({ onAuthSuccess, isDarkMode }) => {
       <div className="text-center mb-8">
   <div className="flex flex-col items-center justify-center mb-4">
     {/* --- BOLD & REFINED LOGO --- */}
-    <h1 className="text-5xl font-extrabold text-black drop-shadow-xl mb-2 font-mono tracking-wide">
-      <span className="text-black-600">&lt;/&gt;</span>CodePulse
-    </h1>
+    <h1 className="text-4xl font-extrabold text-black drop-shadow-xl mb-2 font-mono tracking-wide"> 
+  <span className="text-black-600">&lt;/&gt;</span>CodePulse
+</h1>
+
     <p className="text-lg font-semibold text-white/90 drop-shadow-md tracking-tight">
       Personalized Coding Progress Tracker
     </p>
