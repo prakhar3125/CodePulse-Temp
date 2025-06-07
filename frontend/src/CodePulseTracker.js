@@ -15,13 +15,14 @@ const ProblemCard = ({ problem, onToggle, onSaveNote, notes, isDarkMode, getDiff
         setNotesMode('view');
     };
 
+    // --- MODIFIED LOGIC ---
+    // This function now acts as a simple toggle to show or hide the notes section.
     const handleNotesClick = () => {
-        if (hasNotes && notesMode === 'none') {
-            setNotesMode('view');
-        } else if (notesMode === 'none' || notesMode === 'view') {
-            setNoteText(notes[problem.id] || '');
-            setNotesMode('edit');
+        if (notesMode === 'none') {
+            // If hidden, show notes. Go to 'view' if notes exist, otherwise go straight to 'edit'.
+            setNotesMode(hasNotes ? 'view' : 'edit');
         } else {
+            // If already in 'view' or 'edit' mode, just hide the notes section.
             setNotesMode('none');
         }
     };
@@ -116,9 +117,11 @@ const ProblemCard = ({ problem, onToggle, onSaveNote, notes, isDarkMode, getDiff
                     }`}
                 >
                     <Edit size={14} />
-                    {hasNotes
-                        ? (notesMode === 'view' ? 'Edit Notes' : notesMode === 'edit' ? 'Cancel' : 'View Notes')
-                        : 'Add Notes'
+                    {/* --- MODIFIED TEXT --- */}
+                    {/* This text now clearly reflects the toggle action */}
+                    {notesMode === 'none'
+                        ? (hasNotes ? 'View Notes' : 'Add Notes')
+                        : 'Hide Notes'
                     }
                 </button>
             </div>
