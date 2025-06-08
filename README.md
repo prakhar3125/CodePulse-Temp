@@ -12,7 +12,9 @@
 
 CodePulse Tracker is a dynamic, personalized study planner designed to help developers and students master coding problems for interviews and skill-building. It generates a tailored, day-by-day study schedule based on your skill level, desired timeline, and specific topics of interest. Track your progress, take detailed notes, and stay on top of your goals with an intuitive and feature-rich interface.
 
-
+![screencapture-codepulse-progress-tracker-vercel-app-track-2025-06-08-11_58_50](https://github.com/user-attachments/assets/3846cfe1-b676-45cb-9523-ce3f40a9073f)
+![screencapture-codepulse-progress-tracker-vercel-app-track-2025-06-08-12_03_58](https://github.com/user-attachments/assets/9dc40810-3192-4f3d-a7b5-bd911167b1dd)
+![screencapture-codepulse-progress-tracker-vercel-app-track-2025-06-08-12_05_37](https://github.com/user-attachments/assets/849e9b68-81ff-4c20-93fe-86db0a704695)
 
 ---
 
@@ -335,7 +337,9 @@ This endpoint retrieves overall statistics for the user's problem-solving progre
 **Status Code:** `200 OK`
 
 **Description:** Provides an overview of problems, including total problems, completed problems, and completion percentages, broken down by difficulty level.
+
 ---
+
 
 ## ✍️ Author
 
