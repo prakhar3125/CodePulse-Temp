@@ -1,33 +1,26 @@
+// File: SpacedRepetitionList.js
+
 import React from 'react';
 import { Calendar, AlertCircle, CheckCircle } from 'lucide-react';
-import { format, differenceInDays, addDays, parseISO } from 'date-fns';
-
-// Spaced repetition intervals (in days): e.g., 1 day, 3 days, 1 week, 2 weeks, etc.
-const repetitionIntervals = [1, 3, 7, 14, 30, 90];
-
-const getNextReviewDate = (lastReviewed, repetitions) => {
-    // Use the next interval, capping at the max defined interval
-    const interval = repetitionIntervals[Math.min(repetitions, repetitionIntervals.length - 1)];
-    return addDays(parseISO(lastReviewed), interval);
-};
+import { format, differenceInDays, parseISO } from 'date-fns';
 
 // This component is memoized to prevent re-renders unless its props change.
 const SpacedRepetitionList = React.memo(({ problems, isDarkMode }) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize today's date for accurate comparison
 
-    const getReviewStatus = (reviewDate) => {
+    // This function now just determines the display style based on the date from the backend
+    const getReviewStatus = (reviewDateString) => {
+        const reviewDate = parseISO(reviewDateString);
         const daysDiff = differenceInDays(reviewDate, today);
         if (daysDiff < 0) return { label: 'Overdue', color: 'text-red-500', Icon: AlertCircle };
         if (daysDiff === 0) return { label: 'Due Today', color: 'text-orange-500', Icon: AlertCircle };
         return { label: `In ${daysDiff} day(s)`, color: 'text-blue-500', Icon: Calendar };
     };
     
-    // Sort problems by the next review date
+    // Sort problems directly by the next review date provided by the backend
     const sortedProblems = [...problems].sort((a, b) => {
-        const dateA = getNextReviewDate(a.lastReviewed, a.repetitions);
-        const dateB = getNextReviewDate(b.lastReviewed, b.repetitions);
-        return dateA - dateB;
+        return new Date(a.nextReviewDate) - new Date(b.nextReviewDate);
     });
 
     return (
@@ -36,22 +29,26 @@ const SpacedRepetitionList = React.memo(({ problems, isDarkMode }) => {
             {sortedProblems.length > 0 ? (
                 <ul className="space-y-4">
                     {sortedProblems.map(problem => {
-                        const nextReviewDate = getNextReviewDate(problem.lastReviewed, problem.repetitions);
-                        const { label, color, Icon } = getReviewStatus(nextReviewDate);
+                        // The nextReviewDate now comes directly from the problem object
+                        const { label, color, Icon } = getReviewStatus(problem.nextReviewDate);
 
                         return (
-                            <li key={problem.id} className={`flex items-center justify-between p-3 rounded-md transition-colors ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                            // The key is now problemId from the DTO
+                            <li key={problem.problemId} className={`flex items-center justify-between p-3 rounded-md transition-colors ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                                 <div className="flex items-center">
                                     <Icon className={`mr-3 flex-shrink-0 ${color}`} size={20} />
                                     <div>
-                                        <span className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{problem.name}</span>
-                                        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Repetition: #{problem.repetitions + 1}</p>
+                                        {/* Use problemName from the DTO */}
+                                        <span className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{problem.problemName}</span>
+                                        {/* The backend DTO gives the correct repetition number */}
+                                        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Repetition: #{problem.repetitions}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
                                     <p className={`text-sm font-semibold ${color}`}>{label}</p>
                                     <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        {format(nextReviewDate, 'MMM dd, yyyy')}
+                                        {/* Format the date from the DTO */}
+                                        {format(parseISO(problem.nextReviewDate), 'MMM dd, yyyy')}
                                     </p>
                                 </div>
                             </li>

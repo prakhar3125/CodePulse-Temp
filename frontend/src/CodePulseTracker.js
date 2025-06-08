@@ -7,30 +7,18 @@ import problemsData from './problems.json';
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
 const SpacedRepetitionList = React.memo(({ problems, isDarkMode }) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today's date for accurate comparison
+    today.setHours(0, 0, 0, 0); // Normalize today's date
 
-    // Spaced repetition intervals (in days): e.g., 1 day, 3 days, 1 week, 2 weeks, etc.
-    const repetitionIntervals = [1, 3, 7, 14, 30, 90];
-
-    const getNextReviewDate = (lastReviewed, repetitions) => {
-        // Use the next interval, capping at the max defined interval
-        const interval = repetitionIntervals[Math.min(repetitions, repetitionIntervals.length - 1)];
-        return addDays(parseISO(lastReviewed), interval);
-    };
-
-    const getReviewStatus = (reviewDate) => {
+    const getReviewStatus = (reviewDateString) => {
+        const reviewDate = parseISO(reviewDateString); // Date comes from backend as a string
         const daysDiff = differenceInDays(reviewDate, today);
         if (daysDiff < 0) return { label: 'Overdue', color: 'text-red-500', Icon: AlertCircle };
         if (daysDiff === 0) return { label: 'Due Today', color: 'text-orange-500', Icon: AlertCircle };
         return { label: `In ${daysDiff} day(s)`, color: 'text-blue-500', Icon: Calendar };
     };
-    
-    // Sort problems by the next review date
-    const sortedProblems = [...problems].sort((a, b) => {
-        const dateA = getNextReviewDate(a.lastReviewed, a.repetitions);
-        const dateB = getNextReviewDate(b.lastReviewed, b.repetitions);
-        return dateA - dateB;
-    });
+
+    // Sort problems by the next review date provided by the backend
+    const sortedProblems = [...problems].sort((a, b) => new Date(a.nextReviewDate) - new Date(b.nextReviewDate));
 
     return (
         <div className={`p-4 sm:p-6 rounded-lg shadow transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
@@ -38,22 +26,21 @@ const SpacedRepetitionList = React.memo(({ problems, isDarkMode }) => {
             {sortedProblems.length > 0 ? (
                 <ul className="space-y-4">
                     {sortedProblems.map(problem => {
-                        const nextReviewDate = getNextReviewDate(problem.lastReviewed, problem.repetitions);
-                        const { label, color, Icon } = getReviewStatus(nextReviewDate);
-
+                        const { label, color, Icon } = getReviewStatus(problem.nextReviewDate);
                         return (
-                            <li key={problem.id} className={`flex items-center justify-between p-3 rounded-md transition-colors ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                            <li key={problem.problemId} className={`flex items-center justify-between p-3 rounded-md transition-colors ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                                 <div className="flex items-center">
                                     <Icon className={`mr-3 flex-shrink-0 ${color}`} size={20} />
                                     <div>
-                                        <span className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{problem.name}</span>
-                                        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Repetition: #{problem.repetitions + 1}</p>
+                                        <span className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{problem.problemName}</span>
+                                        {/* Backend now provides the correct repetition number */}
+                                        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Repetition: #{problem.repetitions}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
                                     <p className={`text-sm font-semibold ${color}`}>{label}</p>
                                     <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        {format(nextReviewDate, 'MMM dd, yyyy')}
+                                        {format(parseISO(problem.nextReviewDate), 'MMM dd, yyyy')}
                                     </p>
                                 </div>
                             </li>
@@ -70,6 +57,7 @@ const SpacedRepetitionList = React.memo(({ problems, isDarkMode }) => {
         </div>
     );
 });
+
 
 
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
@@ -623,7 +611,7 @@ const SetupForm = ({ isDarkMode, formData, setFormData, handleFormSubmit, availa
 
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
-const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
+const Dashboard = ({ isDarkMode, stats }) => {
     // LeetCode-style progress bar for a specific difficulty
     const DifficultyProgressBar = ({ difficulty, data, colorClass }) => (
         <div>
@@ -692,7 +680,7 @@ const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Reviews Due</p>
-                            <p className="text-2xl font-bold text-orange-500">{spacedRepetition.length}</p>
+                            <p className="text-2xl font-bold text-orange-500">{stats.spacedRepetition.length}</p>
                         </div>
                         <Bell className="text-orange-500" size={24} />
                     </div>
@@ -711,8 +699,9 @@ const Dashboard = ({ isDarkMode, stats, spacedRepetition }) => {
                     <DifficultyProgressBar difficulty="Hard" data={stats.hard} colorClass="bg-red-500" />
                 </div>
             </div>
-
-            <SpacedRepetitionList problems={spacedRepetition} isDarkMode={isDarkMode} />
+            
+            {/* The spacedRepetition data is now inside the stats object */}
+            <SpacedRepetitionList problems={stats.spacedRepetition} isDarkMode={isDarkMode} />
         </div>
     );
 };
@@ -1020,6 +1009,7 @@ const StudyPlanner = ({onLogout, user}) => {
     
     // NEW: Add loading state to show while checking/fetching the plan
     const [isLoading, setIsLoading] = useState(true);
+    const [dashboardStats, setDashboardStats] = useState(null);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -1083,7 +1073,36 @@ const StudyPlanner = ({onLogout, user}) => {
              setIsLoading(false); // If no check is needed, just stop loading
         }
     }, [location.state?.checkPlan]); // Rerun effect if the checkPlan flag is set
+    useEffect(() => {
+        const fetchDashboardStats = async () => {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/problems/dashboard-stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch dashboard stats');
+                }
+                const data = await response.json();
+                setDashboardStats(data);
+            } catch (error) {
+                console.error("Error fetching dashboard stats:", error);
+                // Set to a default empty state on error
+                setDashboardStats({
+                    total: 0, completed: 0, percentage: 0,
+                    easy: { total: 0, completed: 0, percentage: 0 },
+                    medium: { total: 0, completed: 0, percentage: 0 },
+                    hard: { total: 0, completed: 0, percentage: 0 },
+                    spacedRepetition: []
+                });
+            }
+        };
 
+        // Fetch stats only when the dashboard tab is active and a plan exists
+        if (activeTab === 'dashboard' && studyPlan) {
+            fetchDashboardStats();
+        }
+    }, [activeTab, studyPlan]); 
     const renderHeader = () => (
         <header className={`sticky top-0 z-50 backdrop-blur-lg transition-all duration-300 ${
             isDarkMode 
@@ -1712,16 +1731,24 @@ const StudyPlanner = ({onLogout, user}) => {
                     handleFormSubmit={handleFormSubmit}
                     availableTopics={availableTopics}
                 />}
-                {activeTab === 'dashboard' && studyPlan && (() => {
-                    const problemsForReview = problems.filter(p => p.status === 'completed' && p.lastReviewed);
-                    return (
-                        <Dashboard
-                            isDarkMode={isDarkMode}
-                            stats={getProgressStats()}
-                            spacedRepetition={problemsForReview}
-                        />
-                    );
-                })()}
+
+                {/* --- UPDATED: Dashboard Rendering Logic --- */}
+                {/* It now waits for dashboardStats to be loaded before rendering */}
+                {activeTab === 'dashboard' && studyPlan && dashboardStats && (
+                    <Dashboard
+                        isDarkMode={isDarkMode}
+                        stats={dashboardStats}
+                    />
+                )}
+
+                {/* Show a loader for the dashboard while stats are being fetched */}
+                {activeTab === 'dashboard' && studyPlan && !dashboardStats && (
+                     <div className="flex flex-col items-center justify-center p-10">
+                        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className={`mt-4 font-semibold ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Loading Dashboard...</p>
+                    </div>
+                )}
+                
                 {activeTab === 'tasks' && studyPlan && <TaskManager
                     studyPlan={studyPlan}
                     addCustomProblem={addCustomProblem}
@@ -1733,20 +1760,7 @@ const StudyPlanner = ({onLogout, user}) => {
                     formatNoteContent={formatNoteContent}
                     insertCodeBlock={insertCodeBlock}
                 />}
-
-                {!studyPlan && activeTab !== 'setup' && (
-                    <div className="text-center py-12">
-                        <Brain className={`mx-auto mb-4 transition-colors duration-300 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} size={48} />
-                        <h3 className={`text-lg font-medium mb-2 transition-colors duration-300 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>No Study Plan Created</h3>
-                        <p className={`mb-4 transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Create a study plan first to access this feature.</p>
-                        <button
-                            onClick={() => setActiveTab('setup')}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300"
-                        >
-                            Create Study Plan
-                        </button>
-                    </div>
-                )}
+                {/* (The rest of the component remains the same) */}
             </main>
              <footer className={`w-full py-6 mt-auto border-t transition-colors duration-300 ${isDarkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-white'}`}>
                 <div className="max-w-7xl mx-auto text-center px-4 sm:px-6 lg:px-8">
