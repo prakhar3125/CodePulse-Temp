@@ -239,6 +239,25 @@ public class StudyPlanService {
         // Step 6: Format the response DTO
         return formatPlanAsDto(dailyTasks, progressRepository.findAllByUserId(currentUser.getId()));
     }
+    @Transactional(readOnly = true)
+    public Optional<List<DailyPlanDto>> getLatestStudyPlan(User currentUser) {
+        // Find the most recent study plan for the user
+        Optional<StudyPlan> latestPlanOpt = studyPlanRepository.findFirstByUserIdOrderByIdDesc(currentUser.getId());
+
+        // If no plan is found, return empty
+        if (latestPlanOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        StudyPlan latestPlan = latestPlanOpt.get();
+        // Get all tasks and progress records associated with the plan and user
+        List<DailyTask> tasks = latestPlan.getDailyTasks();
+        List<UserProblemProgress> progresses = progressRepository.findAllByUserId(currentUser.getId());
+
+        // Use the existing DTO formatting logic to build the response
+        List<DailyPlanDto> planDto = formatPlanAsDto(tasks, progresses);
+        return Optional.of(planDto);
+    }
 
     private List<Problem> generateProblemPool(StudyPlanRequest request, List<Topic> topics) {
         Map<Problem.Difficulty, Double> distribution = getDistribution(request.getLevel());

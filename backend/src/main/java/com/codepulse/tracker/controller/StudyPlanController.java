@@ -28,5 +28,11 @@ public class StudyPlanController {
         List<DailyPlanDto> plan = studyPlanService.createStudyPlan(request, currentUser);
         return ResponseEntity.ok(plan);
     }
+    @GetMapping("/latest")
+    public ResponseEntity<List<DailyPlanDto>> getLatestStudyPlan(@AuthenticationPrincipal User currentUser) {
+        return studyPlanService.getLatestStudyPlan(currentUser)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
 }
