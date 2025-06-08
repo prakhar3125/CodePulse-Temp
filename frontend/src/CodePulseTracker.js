@@ -1423,40 +1423,37 @@ const StudyPlanner = ({onLogout, user}) => {
         }
     };
 
-    const toggleProblemStatus = (problemId) => {
-        const updateProblemLogic = (problem) => {
-            if (problem.id === problemId) {
-                const newStatus = problem.status === 'completed' ? 'pending' : 'completed';
-                if (newStatus === 'completed') {
-                    // When a problem is marked as complete, set its review date and repetition stage.
-                    return {
-                        ...problem,
-                        status: 'completed',
-                        lastReviewed: new Date().toISOString(),
-                        // If it's the first time, start at stage 0. If re-completing a review, increment the stage.
-                        repetitions: problem.repetitions ? problem.repetitions + 1 : 0,
-                    };
-                } else {
-                    // If unmarked, reset its review progress.
-                    return {
-                        ...problem,
-                        status: 'pending',
-                        lastReviewed: null,
-                        repetitions: 0,
-                    };
+    const toggleProblemStatus = async (problemId) => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`/api/problems/${problemId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update problem status');
             }
-            return problem;
-        };
-    
-        // Update the master list of problems
-        setProblems(prev => prev.map(updateProblemLogic));
-    
-        // Also update the nested studyPlan state to keep the UI consistent
-        setStudyPlan(prevPlan => prevPlan.map(day => ({
-            ...day,
-            problems: day.problems.map(updateProblemLogic)
-        })));
+
+            const updatedProblem = await response.json();
+
+            // Update local state after successful API call
+            const updateState = (p) => (p.id === problemId ? { ...p, status: updatedProblem.status } : p);
+            
+            setProblems(prev => prev.map(updateState));
+            
+            if(studyPlan) {
+                setStudyPlan(prevPlan => prevPlan.map(day => ({
+                    ...day,
+                    problems: day.problems.map(updateState)
+                })));
+            }
+
+        } catch (error) {
+            console.error("Failed to toggle problem status:", error);
+        }
     };
 
     const addCustomProblem = (customProblem) => {
@@ -1505,8 +1502,21 @@ const StudyPlanner = ({onLogout, user}) => {
         });
     };
 
-    const saveNote = (problemId, note) => {
-        setNotes(prev => ({ ...prev, [problemId]: note }));
+    const saveNote = async (problemId, noteText) => {
+        const token = localStorage.getItem('token');
+        try {
+            await fetch(`/api/problems/${problemId}/notes`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ note: noteText }),
+            });
+            setNotes(prev => ({ ...prev, [problemId]: noteText }));
+        } catch (error) {
+            console.error("Failed to save note:", error);
+        }
     };
 
     const getDifficultyColor = (difficulty) => {
