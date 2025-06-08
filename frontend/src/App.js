@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import AuthPage from './AuthPage';
-import StudyPlanner from './CodePulseTracker'; // Assuming you renamed it to StudyPlanner in App.js
+import StudyPlanner from './CodePulseTracker';
 
-// Create a wrapper component to handle navigation
+// Create a wrapper component to handle navigation and state
 const AppContent = () => {
     const navigate = useNavigate();
     
@@ -11,35 +11,40 @@ const AppContent = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userData, setUserData] = useState(null);
     
-    // Check for existing user data on app load (optional - for persistence)
+    // Check for existing user data and token on app load
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const token = localStorage.getItem('token');
+        if (storedUser && token) {
             try {
                 const parsedUser = JSON.parse(storedUser);
                 setUserData(parsedUser);
                 setIsAuthenticated(true);
-                console.log("App.js: Restored user from localStorage:", parsedUser);
+                // If the user is already logged in, check for a study plan immediately
+                navigate('/track', { state: { checkPlan: true }, replace: true });
             } catch (error) {
                 console.error("Error parsing stored user data:", error);
-                localStorage.removeItem('user'); // Clear corrupted data
+                handleLogout(); // Clear corrupted data
             }
         }
     }, []);
 
-    // This function will be called by AuthPage on successful sign-in/sign-up
-    const handleAuthSuccess = (userInfo) => {
-        console.log("App.js: handleAuthSuccess called with user data:", userInfo);
+    /**
+     * UPDATED: This function is called on successful sign-in/sign-up.
+     * It now orchestrates checking for an existing study plan.
+     */
+    const handleAuthSuccess = async (authData) => {
+        console.log("App.js: Auth success, received data:", authData);
         setIsAuthenticated(true);
-        setUserData(userInfo);
+        setUserData(authData.user);
         
-        // Store user data for persistence (optional)
-        localStorage.setItem('user', JSON.stringify(userInfo));
+        // Store user data and JWT token for session persistence
+        localStorage.setItem('user', JSON.stringify(authData.user));
+        localStorage.setItem('token', authData.jwt);
         
-        // Navigate immediately after setting authentication
-        setTimeout(() => {
-            navigate('/track', { replace: true });
-        }, 100);
+        // After auth, navigate to the main app area and trigger a plan check.
+        // We pass `checkPlan: true` in the navigation state.
+        navigate('/track', { state: { checkPlan: true }, replace: true });
     };
 
     // Function to handle logout
@@ -48,20 +53,13 @@ const AppContent = () => {
         setIsAuthenticated(false);
         setUserData(null);
         
-        // Clear user data from localStorage
+        // Clear all session data
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
         
-        // Navigate immediately after logout
-        setTimeout(() => {
-            navigate('/authentication', { replace: true });
-        }, 100);
+        // Navigate back to the authentication page
+        navigate('/authentication', { replace: true });
     };
-
-    // Log the state every time it changes
-    useEffect(() => {
-        console.log("App.js: isAuthenticated state changed to:", isAuthenticated);
-        console.log("App.js: userData:", userData);
-    }, [isAuthenticated, userData]);
 
     return (
         <Routes>
@@ -69,9 +67,8 @@ const AppContent = () => {
             <Route
                 path="/authentication"
                 element={
-                    // If already authenticated, redirect to track page
                     isAuthenticated ? (
-                        <Navigate to="/track" replace />
+                        <Navigate to="/track" replace state={{ checkPlan: true }} />
                     ) : (
                         <AuthPage onAuthSuccess={handleAuthSuccess} isDarkMode={false} />
                     )
@@ -85,16 +82,15 @@ const AppContent = () => {
                     isAuthenticated && userData ? (
                         <StudyPlanner 
                             onLogout={handleLogout} 
-                            user={userData} // Pass the user data here
+                            user={userData}
                         />
                     ) : (
-                        // If not authenticated, redirect back to authentication page
                         <Navigate to="/authentication" replace />
                     )
                 }
             />
 
-            {/* Redirect from root to authentication or track based on auth status */}
+            {/* Redirect from root to the correct page based on auth status */}
             <Route
                 path="/"
                 element={<Navigate to={isAuthenticated ? "/track" : "/authentication"} replace />}

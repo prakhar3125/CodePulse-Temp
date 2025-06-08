@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom'; // Import useLocation
 import { Calendar, CheckCircle, Circle, Plus, BookOpen, Target, Code, Clock, Bell, Link, Edit, Trash2, Star, Brain, Moon, Sun, AlertCircle } from 'lucide-react';
 import { format, differenceInDays, addDays, parseISO } from 'date-fns';
-import AuthPage from './AuthPage'; // ADD THIS IMPORT AT THE TOP
 import problemsData from './problems.json';
 
 // (Highly Recommended) Component moved outside of the main StudyPlanner component for performance.
@@ -1006,8 +1006,8 @@ const TaskManager = ({ studyPlan, addCustomProblem, toggleProblemStatus, saveNot
     );
 };
 
-
 const StudyPlanner = ({onLogout, user}) => {
+    const location = useLocation(); // Hook to access navigation state
 
     const [activeTab, setActiveTab] = useState('setup');
     const [studyPlan, setStudyPlan] = useState(null);
@@ -1017,7 +1017,74 @@ const StudyPlanner = ({onLogout, user}) => {
     const [customProblems, setCustomProblems] = useState([]);
     const [noteMode, setNoteMode] = useState('text'); // 'text' or 'code'
     const [showSetupError, setShowSetupError] = useState(false);
-     const renderHeader = () => (
+    
+    // NEW: Add loading state to show while checking/fetching the plan
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Form state
+    const [formData, setFormData] = useState({
+        level: 'beginner',
+        days: 30,
+        topics: [],
+        focusAreas: []
+    });
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    /**
+     * UPDATED: This effect now runs when the component mounts or when
+     * `location.state.checkPlan` is true. It fetches the latest plan
+     * from the backend and updates the UI accordingly.
+     */
+    useEffect(() => {
+        // The `checkPlan` flag is passed from App.js via navigation state
+        const shouldCheckPlan = location.state?.checkPlan;
+
+        if (shouldCheckPlan) {
+            setIsLoading(true);
+            const token = localStorage.getItem('token');
+            console.log("CodePulseTracker: Checking for existing plan...");
+
+            fetch('/api/study-plan/latest', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => {
+                if (res.ok) {
+                    return res.json();
+                }
+                if (res.status === 404) {
+                    // 404 means no plan exists, which is a valid scenario
+                    return null;
+                }
+                // Other errors
+                throw new Error('Failed to fetch study plan');
+            })
+            .then(existingPlan => {
+                if (existingPlan) {
+                    console.log("CodePulseTracker: Found existing plan, loading dashboard.");
+                    setStudyPlan(existingPlan);
+                    const allProblems = existingPlan.flatMap(day => day.problems);
+                    setProblems(allProblems);
+                    setActiveTab('dashboard'); // Plan exists, go to dashboard
+                } else {
+                    console.log("CodePulseTracker: No plan found, showing setup.");
+                    setActiveTab('setup'); // No plan, go to setup
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching study plan:", error);
+                setActiveTab('setup'); // On error, default to setup page
+            })
+            .finally(() => {
+                setIsLoading(false); // Hide loader
+                // Clear the state to prevent re-fetching on component re-renders
+                window.history.replaceState({}, document.title)
+            });
+        } else {
+             setIsLoading(false); // If no check is needed, just stop loading
+        }
+    }, [location.state?.checkPlan]); // Rerun effect if the checkPlan flag is set
+
+    const renderHeader = () => (
         <header className={`sticky top-0 z-50 backdrop-blur-lg transition-all duration-300 ${
             isDarkMode 
                 ? 'bg-gray-900/90 border-gray-700' 
@@ -1101,19 +1168,6 @@ const StudyPlanner = ({onLogout, user}) => {
         </header>
     );
 
-
-    
-
-
-    // Form state
-    const [formData, setFormData] = useState({
-        level: 'beginner',
-        days: 30,
-        topics: [],
-        focusAreas: []
-    });
-    const [isDarkMode, setIsDarkMode] = useState(false);
-
     // Load and save dark mode preference from/to localStorage
     useEffect(() => {
         const savedDarkMode = localStorage.getItem('darkMode');
@@ -1125,8 +1179,6 @@ const StudyPlanner = ({onLogout, user}) => {
     useEffect(() => {
         localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
     }, [isDarkMode]);
-
-
 
     const handleLogout = () => {
         // Reset all data when logging out
@@ -1191,8 +1243,6 @@ const StudyPlanner = ({onLogout, user}) => {
             newCursorPosition: cursorPosition + `\`\`\`${language}\n`.length
         };
     };
-
-
 
     // Available topics for selection
     const availableTopics = [
@@ -1320,15 +1370,57 @@ const StudyPlanner = ({onLogout, user}) => {
         return dailyPlan;
     };
 
-    const handleFormSubmit = () => {
-        const plan = generateProblems(formData.level, formData.days, formData.topics);
-        setStudyPlan(plan);
+    /**
+     * UPDATED: This function now sends the form data to the backend
+     * to create a new study plan.
+     */
+    const handleFormSubmit = async () => {
+        setIsLoading(true);
+        const token = localStorage.getItem('token');
+        
+        // Find the names of the selected topics from their IDs
+        const selectedTopicNames = formData.topics
+            .map(topicId => availableTopics.find(t => t.id === topicId)?.name)
+            .filter(Boolean);
 
-        // Flatten problems for task manager
-        const allProblems = plan.flatMap(day => day.problems);
-        setProblems(allProblems);
+        try {
+            const response = await fetch('/api/study-plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    level: formData.level,
+                    days: formData.days,
+                    topics: selectedTopicNames,
+                }),
+            });
 
-        setActiveTab('dashboard');
+            if (!response.ok) {
+                throw new Error('Failed to generate study plan from backend.');
+            }
+
+            const newPlan = await response.json();
+            setStudyPlan(newPlan);
+            const allProblems = newPlan.flatMap(day => day.problems);
+            setProblems(allProblems);
+            setActiveTab('dashboard'); // Switch to dashboard after creation
+
+        } catch (error) {
+            console.error("Error creating new study plan:", error);
+            // Fallback to client-side generation if backend fails
+            const plan = generateProblems(formData.level, formData.days, formData.topics);
+            setStudyPlan(plan);
+
+            // Flatten problems for task manager
+            const allProblems = plan.flatMap(day => day.problems);
+            setProblems(allProblems);
+
+            setActiveTab('dashboard');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const toggleProblemStatus = (problemId) => {
@@ -1427,8 +1519,7 @@ const StudyPlanner = ({onLogout, user}) => {
         return baseColors[difficulty] || baseColors.default;
     };
 
-
-        const getProgressStats = () => {
+    const getProgressStats = () => {
         const stats = {
             total: problems.length,
             completed: 0,
@@ -1466,6 +1557,17 @@ const StudyPlanner = ({onLogout, user}) => {
         return stats;
     };
 
+    // NEW: Render a loading indicator while checking for the plan
+    if (isLoading) {
+        return (
+            <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+                <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className={`mt-4 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-700'}`}>Loading Your Plan...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
